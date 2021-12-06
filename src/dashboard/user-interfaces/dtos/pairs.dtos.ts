@@ -1,4 +1,10 @@
-import { LiquidityDto, PairDto, PairsDto, VolumeDto } from 'dashboard/services/dtos/pairs.dtos'
+import {
+  LiquidityDto,
+  PairDto,
+  PairRecentDataDto,
+  PairsDto,
+  VolumeDto,
+} from 'dashboard/services/dtos/pairs.dtos'
 import { ApiResponseProperty } from '../decorators/api-property.decorator'
 import { TokenResponse } from './dtos'
 
@@ -122,4 +128,32 @@ export class PairResponse extends PairDto {
     maxItems: 50,
   })
   liquidities: LiquidityResponse[]
+}
+
+export class PairRecentCycleResponse {
+  @ApiResponseProperty({ example: '110079649300112', type: String })
+  volume: string
+
+  @ApiResponseProperty({ example: '0.234', type: String })
+  volumeIncreasedRate: string
+
+  @ApiResponseProperty({ example: '1307281629942463', type: String })
+  liquidity: string
+
+  @ApiResponseProperty({ example: '0.34', type: String })
+  liquidityIncreasedRate: string
+
+  @ApiResponseProperty({ example: '330238947900', type: String })
+  fee: string
+
+  @ApiResponseProperty({ example: '0.24832', type: String })
+  feeIncreasedRate: string
+}
+
+export class PairRecentDataResponse extends PairRecentDataDto {
+  @ApiResponseProperty({ type: PairRecentCycleResponse })
+  daily: PairRecentCycleResponse
+
+  @ApiResponseProperty({ type: PairRecentCycleResponse })
+  weekly: PairRecentCycleResponse
 }

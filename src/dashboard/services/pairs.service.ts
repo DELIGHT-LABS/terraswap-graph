@@ -2,8 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { DashboardPairsRepository } from 'dashboard/repositories/pairs.repository'
 import { BigNumber } from 'lib/num'
 import memoize from 'memoizee-decorator'
+import { Cycle } from 'types'
 import { TERRASWAP_SWAP_FEE_RATE } from './common/defined'
-import { PairDto, PairsDto, PairsDtos } from './dtos/pairs.dtos'
+import { calculateFee, calculateIncreasedRate } from './common/utils'
+import {
+  PairDto,
+  PairRecentCycleDto,
+  PairRecentDataDto,
+  PairRecentVolumeAndLiquidityDto,
+  PairsDto,
+  PairsDtos,
+} from './dtos/pairs.dtos'
 
 @Injectable()
 export class DashboardPairsService {
@@ -34,8 +43,7 @@ export class DashboardPairsService {
 
     Object.values(pairsWeekDict).forEach((obj) => {
       const pair = pairsDict[obj.pairAddress]
-      if (!pair) 
-        return
+      if (!pair) return
       pair.apr = this.calculateApr(obj.volume, obj.liquidityUst)
     })
     return Object.values(pairsDict)
@@ -62,6 +70,40 @@ export class DashboardPairsService {
     return pairDto
   }
 
+  @memoize({ promise: true, maxAge: 60 * 1000 })
+  async getRecentDataOfPair(pairAddress: string): Promise<PairRecentDataDto> {
+    const now = Date.now()
+    const today = await this.repo.getVolumeAndLiquidityOfPair(
+      pairAddress,
+      new Date(now - Cycle.DAY),
+      new Date(now)
+    )
+    const yesterday = await this.repo.getVolumeAndLiquidityOfPair(
+      pairAddress,
+      new Date(now - Cycle.DAY * 2),
+      new Date(now - Cycle.DAY)
+    )
+    const thisWeek = await this.repo.getVolumeAndLiquidityOfPair(
+      pairAddress,
+      new Date(now - Cycle.WEEK),
+      new Date(now)
+    )
+    const lastWeek = await this.repo.getVolumeAndLiquidityOfPair(
+      pairAddress,
+      new Date(now - Cycle.WEEK * 2),
+      new Date(now - Cycle.WEEK)
+    )
+
+    if (!today) {
+      throw new NotFoundException()
+    }
+
+    return {
+      daily: this.toRecentCycleDto(today, yesterday),
+      weekly: this.toRecentCycleDto(thisWeek, lastWeek),
+    }
+  }
+
   private calculateApr(volume: string, liquidityUst: string): string {
     if (new BigNumber(liquidityUst).isLessThanOrEqualTo(0)) {
       return '0'
@@ -72,5 +114,20 @@ export class DashboardPairsService {
       .multipliedBy(365)
       .multipliedBy(TERRASWAP_SWAP_FEE_RATE)
       .toString()
+  }
+
+  private toRecentCycleDto(
+    current: PairRecentVolumeAndLiquidityDto,
+    previous: PairRecentVolumeAndLiquidityDto
+  ): PairRecentCycleDto {
+    const fee = calculateFee(current.volume)
+    return {
+      volume: current.volume,
+      volumeIncreasedRate: calculateIncreasedRate(current.volume, previous.volume),
+      liquidity: current.liquidity,
+      liquidityIncreasedRate: calculateIncreasedRate(current.liquidity, previous.liquidity),
+      fee,
+      feeIncreasedRate: calculateIncreasedRate(fee, calculateFee(previous.volume)),
+    }
   }
 }

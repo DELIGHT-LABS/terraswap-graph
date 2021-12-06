@@ -1,8 +1,18 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
 import { Volume24hDto } from 'dashboard/services/dtos/dtos'
-import { PairDto, PairsDtos } from 'dashboard/services/dtos/pairs.dtos'
+import {
+  PairDto,
+  PairRecentVolumeAndLiquidityDto,
+  PairsDtos,
+} from 'dashboard/services/dtos/pairs.dtos'
 import { floorTimestamp } from 'dashboard/services/utils'
-import { PairDayDataEntity, PairInfoEntity, Recent24hEntity, TokenInfoEntity } from 'orm'
+import {
+  PairDayDataEntity,
+  PairHourDataEntity,
+  PairInfoEntity,
+  Recent24hEntity,
+  TokenInfoEntity,
+} from 'orm'
 import { getManager, getRepository } from 'typeorm'
 import { Cycle } from 'types'
 import { PAIR_DATA_MAX_DAY_RANGE } from './defined'
@@ -150,6 +160,28 @@ export class DashboardPairsRepository {
         .getRawOne()
     } catch (err) {
       Logger.warn(`err ${err.stack ? err.stack : err}`)
+      throw new InternalServerErrorException(`internal server error`)
+    }
+  }
+
+  async getVolumeAndLiquidityOfPair(
+    pairAddress: string,
+    from: Date,
+    to: Date
+  ): Promise<PairRecentVolumeAndLiquidityDto> {
+    const pairRepo = getManager().getRepository(PairHourDataEntity)
+    try {
+      return await pairRepo
+        .createQueryBuilder('p')
+        .select('SUM(p.volumeUst)', 'volume')
+        .addSelect('SUM(p.liquidityUst)', 'liquidity')
+        .where('p.pair =:pairAddress', { pairAddress })
+        .andWhere('p.timestamp <=:to', { to })
+        .andWhere('p.timestamp >=:from', { from })
+        .cache(60 * 1000)
+        .getRawOne()
+    } catch (err: any) {
+      Logger.warn(`getTerraswapRecentData err:${err.stack ? err.stack : err}`)
       throw new InternalServerErrorException(`internal server error`)
     }
   }
