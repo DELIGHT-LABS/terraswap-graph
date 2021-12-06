@@ -15,4 +15,4 @@ COPY --from=builder /app .
 COPY . .
 
 ENTRYPOINT ["npm", "run"]
-CMD ["start"]
+CMD ["dashboard"]
