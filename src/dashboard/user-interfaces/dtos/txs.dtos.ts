@@ -16,6 +16,9 @@ export class TxsQuery {
 }
 
 export class TxResponse {
+  @ApiResponseProperty({example: '1923342'})
+  id: number
+
   @ApiResponseProperty({ description: 'timestamp for the tx', example: '2021-11-10 09:41:02.774' })
   timestamp: number
 

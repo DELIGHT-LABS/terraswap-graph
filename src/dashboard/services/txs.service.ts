@@ -7,7 +7,7 @@ export class DashboardTxsService {
   constructor(private readonly repo: DashboardTxsRepository) {}
 
   @memoize({ promise: true, maxAge: 6000 })
-  async getTxs(pair: string, page?: number): Promise<any> {
-    return this.repo.getTxsOfPair(pair, page)
+  async getTxs(pair: string, pageOffset?: number): Promise<any> {
+    return this.repo.getTxsOfPair(pair, pageOffset)
   }
 }

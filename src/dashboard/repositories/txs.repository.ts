@@ -18,7 +18,7 @@ export class DashboardTxsRepository {
         .addSelect('t.action', 'action')
         .addSelect('t.token0Amount', 'token0Amount')
         .addSelect('t.token1Amount', 'token1Amount')
-        .addSelect('t.id', 'ID')
+        .addSelect('t.id', 'id')
         .where('t.pair=:pair', { pair })
         .orderBy('t.id', 'DESC')
         .skip(TXS_PAGINATED_COUNT * page)

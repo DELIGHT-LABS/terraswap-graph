@@ -20,6 +20,7 @@ export class TxsController {
   @ApiQuery({ name: 'page', description: 'page number', required: false, example: 10 })
   // @ApiQuery({ name: 'txHash', description: 'txHash for page nation, required when page is provided', required: false , example: '5776F49B83911D84FE7318B772FA45715BC9353E17687B7C706F6209A1D91085'})
   async getPairTxs(@Query() query: TxsQuery): Promise<TxsResponse> {
-    return this.service.getTxs(query.pair, query.page)
+    const pageOffset = query.page ? Number(query.page) - 1 : 0 
+    return this.service.getTxs(query.pair, pageOffset)
   }
 }
