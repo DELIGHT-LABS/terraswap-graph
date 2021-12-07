@@ -4,6 +4,7 @@
   "license": "Apache-2.0",
   "main": "src/main.ts",
   "scripts": {
+    "commithash": "GIT_COMMIT_HASH=$(git rev-parse --short HEAD)",
     "dev": "nodemon --signal SIGINT --exec ts-node -e ts,json --files -r tsconfig-paths/register src/main.ts",
     "start": "NODE_ENV=production node --stack_size=4096 --max-old-space-size=4096 -r ts-node/register/transpile-only -r tsconfig-paths/register src/main.ts",
     "collect": "NODE_ENV=production node --stack_size=4096 --max-old-space-size=4096 -r ts-node/register/transpile-only -r tsconfig-paths/register src/collector/main.ts",
@@ -14,7 +15,7 @@
     "lint": "eslint '*/**/*.{js,ts,tsx}' --fix",
     "test": "npm test",
     "migrate": "NODE_ENV=production node --stack_size=4096 --max-old-space-size=4096 -r ts-node/register/transpile-only -r tsconfig-paths/register src/migrate_col5_pairs/main.ts",
-    "dashboard": "NODE_ENV=production node --stack_size=4096 --max-old-space-size=4096 -r ts-node/register/transpile-only -r tsconfig-paths/register src/dashboard/main.ts"
+    "dashboard": "npm run commithash && NODE_ENV=production node --stack_size=4096 --max-old-space-size=4096 -r ts-node/register/transpile-only -r tsconfig-paths/register src/dashboard/main.ts"
   },
   "dependencies": {
     "@nestjs/common": "^8.0.0",
@@ -22,6 +23,8 @@
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/platform-fastify": "^8.1.2",
     "@nestjs/swagger": "^5.1.4",
+    "@nestjs/throttler": "^2.0.0",
+    "@sentry/integrations": "^6.15.0",
     "@sentry/node": "^6.9.0",
     "@terra-money/hive": "^0.1.0",
     "@terra-money/log-finder": "^1.1.4",
@@ -43,6 +46,7 @@
     "lodash": "^4.17.21",
     "memoizee": "^0.4.15",
     "memoizee-decorator": "^1.0.3",
+    "nest-raven": "^8.0.0",
     "pg": "^8.6.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",

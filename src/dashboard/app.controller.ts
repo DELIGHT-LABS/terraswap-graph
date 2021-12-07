@@ -1,9 +1,8 @@
-import { Controller } from '@nestjs/common'
-import { Get } from 'koa-joi-controllers'
+import { Get, Controller } from '@nestjs/common'
 
 @Controller()
 export class AppController {
-  @Get()
+  @Get('')
   health(): { timestamp: number } {
     return { timestamp: Date.now() }
   }
