@@ -1,3 +1,0 @@
-[2021-10-23T10:09:11.943Z][QUERY]: SELECT * FROM "information_schema"."tables" WHERE "table_schema" = current_schema() AND "table_name" = 'migrations'
-[2021-10-23T10:09:11.950Z][QUERY]: SELECT * FROM "migrations" "migrations" ORDER BY "id" DESC
-[2021-10-23T10:09:11.952Z]No migrations are pending
