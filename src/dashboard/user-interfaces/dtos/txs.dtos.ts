@@ -3,6 +3,13 @@ import { IsInt, IsOptional, IsString, Length, Max, Min } from 'class-validator'
 import { TerraswapAction } from 'dashboard/services/dtos/dtos'
 import { ApiResponseProperty } from '../decorators/api-property.decorator'
 
+export class TxParam {
+  @IsString()
+  @Length(64,64)
+  txHash:string
+
+}
+
 export class TxsQuery {
   @IsOptional()
   @IsString()

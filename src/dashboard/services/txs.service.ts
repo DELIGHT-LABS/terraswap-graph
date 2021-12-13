@@ -10,4 +10,10 @@ export class DashboardTxsService {
   async getTxs(pair: string, pageOffset?: number): Promise<any> {
     return this.repo.getTxsOfPair(pair, pageOffset)
   }
+
+
+  @memoize({ promise: true, maxAge: 6000 })
+  async getTx(txHash: string): Promise<any> {
+    return this.repo.getTx(txHash)
+  }
 }

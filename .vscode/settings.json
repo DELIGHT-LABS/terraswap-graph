@@ -8,5 +8,10 @@
         "jsdelivr",
         "memoizee",
         "Txns"
+    ],
+    "githubPullRequests.remotes": [
+        "origin",
+        "upstream",
+        "delight"
     ]
 }

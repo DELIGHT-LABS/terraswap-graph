@@ -6,7 +6,7 @@ import { NestFactory } from '@nestjs/core'
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
 import { AppModule } from './app.module'
 import { initORM } from 'orm'
-import { INestApplication, ValidationPipe } from '@nestjs/common'
+import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common'
 import { RewriteFrames } from '@sentry/integrations'
 import * as Sentry from '@sentry/node'
 
@@ -38,7 +38,11 @@ function initSentry(app: INestApplication, dsn: string) {
 async function bootstrap() {
   await initORM()
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter())
-
+  app.enableCors({
+    methods: ['GET'],
+    origin: ['https://app.terraswap.io', 'https://app-dev.terraswap.io'],
+    optionsSuccessStatus: HttpStatus.OK,
+  })
   app.useGlobalPipes(new ValidationPipe({ transform: true }))
 
   if (process.env.OPEN_API === 'true') {

@@ -1,4 +1,10 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
+import {
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common'
 import { TxHistoryEntity } from 'orm'
 import { getManager, getRepository } from 'typeorm'
 import { TXS_PAGINATED_COUNT } from './defined'
@@ -33,7 +39,29 @@ export class DashboardTxsRepository {
     }
   }
 
-  private async getId(hash: string): Promise<string> {
-    return (await getRepository(TxHistoryEntity).findOne({ tx_hash: hash })).id
+  async getTx(hash: string): Promise<any> {
+    try {
+      const dto = await getRepository(TxHistoryEntity)
+        .createQueryBuilder('t')
+        .select('t.id', 'id')
+        .addSelect('t.pair', 'pairAddress')
+        .addSelect('t.timestamp', 'timestamp')
+        .addSelect('t.tx_hash', 'txHash')
+        .addSelect('t.action', 'action')
+        .addSelect('t.token0Amount', 'token0Amount')
+        .addSelect('t.token1Amount', 'token1Amount')
+        .where('t.tx_hash=:hash', { hash })
+        .getRawOne()
+      if (!dto) {
+        throw new NotFoundException(`cannot find tx:${hash}`)
+      }
+      return dto
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err
+      }
+      Logger.error(err)
+      throw new InternalServerErrorException()
+    }
   }
 }
