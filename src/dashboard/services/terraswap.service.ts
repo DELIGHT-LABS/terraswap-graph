@@ -8,7 +8,9 @@ import {
   TerraswapRecentCycleDto,
   TerraswapRecentDataDto,
   TerraswapRecentVolumeAndLiquidityDto,
+  TerraswapSyncedInfo,
 } from './dtos/terraswap.dtos'
+import { floorTimestamp } from './utils'
 
 @Injectable()
 export class DashboardTerraswapService {
@@ -19,36 +21,48 @@ export class DashboardTerraswapService {
     return await this.repo.getTerraswapData(from, to)
   }
 
-  @memoize({ promise: true, maxAge: 60 * 1000 })
+  @memoize({ promise: true, maxAge: 3 * 60 * 1000 })
   async getTerraswapRecentData(): Promise<TerraswapRecentDataDto> {
-    const now = Date.now()
-    const today = await this.repo.getVolumeAndLiquidity(new Date(now - Cycle.DAY), new Date(now))
-    const yesterday = await this.repo.getVolumeAndLiquidity(
-      new Date(now - Cycle.DAY * 2),
-      new Date(now - Cycle.DAY)
-    )
-    const thisWeek = await this.repo.getVolumeAndLiquidity(
-      new Date(now - Cycle.WEEK),
-      new Date(now)
-    )
-    const lastWeek = await this.repo.getVolumeAndLiquidity(
-      new Date(now - Cycle.WEEK * 2),
-      new Date(now - Cycle.WEEK)
+    const syncInfo = await this.repo.getSyncedBlockAndTimestamp()
+
+    if (!syncInfo.height || !syncInfo.timestamp) {
+      throw new NotFoundException(`server is not synced properly`)
+    }
+
+    const lastTimestamp = floorTimestamp(syncInfo.timestamp.getTime(), Cycle.HOUR)
+
+    const lastDay = await this.repo.getSumOfVolumesAndLiquidities(
+      new Date(lastTimestamp - Cycle.DAY),
+      new Date(lastTimestamp)
     )
 
-    if (!today) {
+    if (!lastDay) {
       throw new NotFoundException()
     }
 
+    const dayAgo = await this.repo.getSumOfVolumesAndLiquidities(
+      new Date(lastTimestamp - Cycle.DAY * 2),
+      new Date(lastTimestamp - Cycle.DAY)
+    )
+    const lastWeek = await this.repo.getSumOfVolumesAndLiquidities(
+      new Date(lastTimestamp - Cycle.WEEK),
+      new Date(lastTimestamp)
+    )
+    const weekAgo = await this.repo.getSumOfVolumesAndLiquidities(
+      new Date(lastTimestamp - Cycle.WEEK * 2),
+      new Date(lastTimestamp - Cycle.WEEK * 1)
+    )
+
     return {
-      daily: this.toRecentCycleDto(today, yesterday),
-      weekly: this.toRecentCycleDto(thisWeek, lastWeek),
+      daily: this.toRecentCycleDto(lastDay, dayAgo, syncInfo),
+      weekly: this.toRecentCycleDto(lastWeek, weekAgo, syncInfo),
     }
   }
 
   private toRecentCycleDto(
     current: TerraswapRecentVolumeAndLiquidityDto,
-    previous: TerraswapRecentVolumeAndLiquidityDto
+    previous: TerraswapRecentVolumeAndLiquidityDto,
+    syncInfo: TerraswapSyncedInfo
   ): TerraswapRecentCycleDto {
     const fee = calculateFee(current.volume)
     return {
@@ -58,6 +72,7 @@ export class DashboardTerraswapService {
       liquidityIncreasedRate: calculateIncreasedRate(current.liquidity, previous.liquidity),
       fee,
       feeIncreasedRate: calculateIncreasedRate(fee, calculateFee(previous.volume)),
+      ...syncInfo,
     }
   }
 }

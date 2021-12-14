@@ -1,4 +1,4 @@
-import { IsNumberString, IsDate, IsString } from 'class-validator'
+import { IsNumberString, IsDate, IsString, IsNumber, IsDateString } from 'class-validator'
 
 export class TerraswapDataDto {
   @IsDate()
@@ -29,6 +29,12 @@ export class TerraswapRecentCycleDto {
 
   @IsNumberString()
   feeIncreasedRate: string
+
+  @IsNumber()
+  height: number
+
+  @IsDateString()
+  timestamp: Date 
 }
 export class TerraswapRecentDataDto {
   daily: TerraswapRecentCycleDto
@@ -42,4 +48,12 @@ export class TerraswapRecentVolumeAndLiquidityDto {
 
   @IsString()
   liquidity: string
+}
+
+export class TerraswapSyncedInfo {
+  @IsNumber()
+  height: number
+
+  @IsDateString()
+  timestamp: Date 
 }
