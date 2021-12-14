@@ -4,16 +4,18 @@ import {
   PairDto,
   PairRecentVolumeAndLiquidityDto,
   PairsDtos,
+  PairsSyncedInfo,
 } from 'dashboard/services/dtos/pairs.dtos'
 import { floorTimestamp } from 'dashboard/services/utils'
 import {
+  BlockEntity,
   PairDayDataEntity,
   PairHourDataEntity,
   PairInfoEntity,
   Recent24hEntity,
   TokenInfoEntity,
 } from 'orm'
-import { getManager, getRepository } from 'typeorm'
+import { getConnection, getManager, getRepository } from 'typeorm'
 import { Cycle } from 'types'
 import { PAIR_DATA_MAX_DAY_RANGE } from './defined'
 import { pairEntity, volumesAndLiquidities } from './dtos/pairs.dtos'
@@ -158,30 +160,81 @@ export class DashboardPairsRepository {
         .where('r.pair =:pairAddr', { pairAddr })
         .cache(60 * 1000)
         .getRawOne()
-    } catch (err) {
+    } catch (err: any) {
       Logger.warn(`err ${err.stack ? err.stack : err}`)
       throw new InternalServerErrorException(`internal server error`)
     }
   }
 
-  async getVolumeAndLiquidityOfPair(
+  async getSyncedBlockAndTimestamp(pairAddress: string): Promise<PairsSyncedInfo> {
+    const bRepo = getManager().getRepository(BlockEntity)
+    const phRepo = getManager().getRepository(PairHourDataEntity)
+    try {
+      const { height } = await bRepo.findOne({ select: ['height'] })
+      const { timestamp } = await phRepo.findOne({
+        select: ['timestamp'],
+        where: {
+          pair: pairAddress,
+        },
+        order: {
+          timestamp: 'DESC',
+        },
+      })
+
+      return { height, timestamp }
+    } catch (err: any) {
+      Logger.warn(`getSyncedBlockAndTimestampOfPair err:${err.stack ? err.stack : err}`)
+      throw new InternalServerErrorException(`internal server error`)
+    }
+  }
+
+  /**
+   * (from, to]
+   * @param from excluded
+   * @param to included
+   */
+  async getSumOfVolumesAndLiquidity(
     pairAddress: string,
     from: Date,
     to: Date
   ): Promise<PairRecentVolumeAndLiquidityDto> {
-    const pairRepo = getManager().getRepository(PairHourDataEntity)
+    const volume = await this.getSumOfVolumes(pairAddress, from, to)
+    const liquidity = await this.getTvl(pairAddress, to)
+
+    return { volume, liquidity }
+  }
+
+  private async getSumOfVolumes(pairAddress: string, from: Date, to: Date): Promise<string> {
     try {
-      return await pairRepo
+      const { volume } = await getRepository(PairHourDataEntity)
         .createQueryBuilder('p')
         .select('SUM(p.volumeUst)', 'volume')
-        .addSelect('SUM(p.liquidityUst)', 'liquidity')
-        .where('p.pair =:pairAddress', { pairAddress })
-        .andWhere('p.timestamp <=:to', { to })
-        .andWhere('p.timestamp >=:from', { from })
-        .cache(60 * 1000)
+        .where('p.timestamp <=:to', { to })
+        .andWhere('p.timestamp >:from', { from })
+        .andWhere('p.pair =:pairAddress', { pairAddress })
         .getRawOne()
+
+      return volume
     } catch (err: any) {
-      Logger.warn(`getTerraswapRecentData err:${err.stack ? err.stack : err}`)
+      Logger.warn(`getSumOfVolumes err:${err.stack ? err.stack : err}`)
+      throw new InternalServerErrorException(`internal server error`)
+    }
+  }
+
+  private async getTvl(pairAddress: string, targetTime: Date): Promise<string> {
+    try {
+      const { liquidity } = await getConnection()
+        .createQueryBuilder()
+        .select('p.liquidityUst', 'liquidity')
+        .from(PairHourDataEntity, 'p')
+        .where('p.pair = :pairAddress', { pairAddress })
+        .andWhere('p.timestamp =:targetTime', { targetTime })
+        .limit(1)
+        .getRawOne()
+
+      return liquidity
+    } catch (err: any) {
+      Logger.warn(`getSumOfLiquidities err:${err.stack ? err.stack : err}`)
       throw new InternalServerErrorException(`internal server error`)
     }
   }

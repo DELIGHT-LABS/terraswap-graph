@@ -31,7 +31,7 @@ export class PairsController {
   async getRecentDataOfPair(
     @Param('pairAddress') address: string
   ): Promise<PairRecentDataResponse> {
-    return await this.service.getRecentDataOfPair(address)
+    return await this.service.getRecentData(address)
   }
 
   @Get('/:address')

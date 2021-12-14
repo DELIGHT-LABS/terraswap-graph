@@ -12,7 +12,9 @@ import {
   PairRecentVolumeAndLiquidityDto,
   PairsDto,
   PairsDtos,
+  PairsSyncedInfo,
 } from './dtos/pairs.dtos'
+import { floorTimestamp } from './utils'
 
 @Injectable()
 export class DashboardPairsService {
@@ -70,28 +72,34 @@ export class DashboardPairsService {
     return pairDto
   }
 
-  @memoize({ promise: true, maxAge: 60 * 1000 })
-  async getRecentDataOfPair(pairAddress: string): Promise<PairRecentDataDto> {
-    const now = Date.now()
-    const today = await this.repo.getVolumeAndLiquidityOfPair(
+  @memoize({ promise: true, maxAge: 1 * 60 * 1000 })
+  async getRecentData(pairAddress: string): Promise<PairRecentDataDto> {
+    const syncInfo = await this.repo.getSyncedBlockAndTimestamp(pairAddress)
+
+    if (!syncInfo.height || !syncInfo.timestamp) {
+      throw new NotFoundException(`server is not synced properly`)
+    }
+    const latestTimestamp = floorTimestamp(syncInfo.timestamp.getTime(), Cycle.HOUR)
+
+    const today = await this.repo.getSumOfVolumesAndLiquidity(
       pairAddress,
-      new Date(now - Cycle.DAY),
-      new Date(now)
+      new Date(latestTimestamp - Cycle.DAY),
+      new Date(latestTimestamp)
     )
-    const yesterday = await this.repo.getVolumeAndLiquidityOfPair(
+    const yesterday = await this.repo.getSumOfVolumesAndLiquidity(
       pairAddress,
-      new Date(now - Cycle.DAY * 2),
-      new Date(now - Cycle.DAY)
+      new Date(latestTimestamp - Cycle.DAY * 2),
+      new Date(latestTimestamp - Cycle.DAY)
     )
-    const thisWeek = await this.repo.getVolumeAndLiquidityOfPair(
+    const thisWeek = await this.repo.getSumOfVolumesAndLiquidity(
       pairAddress,
-      new Date(now - Cycle.WEEK),
-      new Date(now)
+      new Date(latestTimestamp - Cycle.WEEK),
+      new Date(latestTimestamp)
     )
-    const lastWeek = await this.repo.getVolumeAndLiquidityOfPair(
+    const lastWeek = await this.repo.getSumOfVolumesAndLiquidity(
       pairAddress,
-      new Date(now - Cycle.WEEK * 2),
-      new Date(now - Cycle.WEEK)
+      new Date(latestTimestamp - Cycle.WEEK * 2),
+      new Date(latestTimestamp - Cycle.WEEK)
     )
 
     if (!today) {
@@ -99,8 +107,8 @@ export class DashboardPairsService {
     }
 
     return {
-      daily: this.toRecentCycleDto(today, yesterday),
-      weekly: this.toRecentCycleDto(thisWeek, lastWeek),
+      daily: this.toRecentCycleDto(today, yesterday, syncInfo),
+      weekly: this.toRecentCycleDto(thisWeek, lastWeek, syncInfo),
     }
   }
 
@@ -118,7 +126,8 @@ export class DashboardPairsService {
 
   private toRecentCycleDto(
     current: PairRecentVolumeAndLiquidityDto,
-    previous: PairRecentVolumeAndLiquidityDto
+    previous: PairRecentVolumeAndLiquidityDto,
+    syncInfo: PairsSyncedInfo
   ): PairRecentCycleDto {
     const fee = calculateFee(current.volume)
     return {
@@ -128,6 +137,7 @@ export class DashboardPairsService {
       liquidityIncreasedRate: calculateIncreasedRate(current.liquidity, previous.liquidity),
       fee,
       feeIncreasedRate: calculateIncreasedRate(fee, calculateFee(previous.volume)),
+      ...syncInfo,
     }
   }
 }

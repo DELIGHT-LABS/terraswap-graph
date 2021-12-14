@@ -146,8 +146,15 @@ export class PairRecentCycleResponse {
   @ApiResponseProperty({ example: '330238947900', type: String })
   fee: string
 
-  @ApiResponseProperty({ example: '0.24832', type: String })
+  @ApiResponseProperty({ examples: ['0.24832', 'Infinity'], type: String })
   feeIncreasedRate: string
+
+  @ApiResponseProperty({ example: '5667522', type: Number })
+  height: number
+
+  @ApiResponseProperty({ example: '2021-12-14T02:00:00.000Z' })
+  timestamp: Date 
+
 }
 
 export class PairRecentDataResponse extends PairRecentDataDto {

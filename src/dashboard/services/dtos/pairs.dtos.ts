@@ -1,4 +1,4 @@
-import { IsNumberString, IsString } from 'class-validator'
+import { IsDateString, IsNumber, IsNumberString, IsString } from 'class-validator'
 import { TokenDto, Volume24hDto } from './dtos'
 
 export type PairsDtos = PairsDto[]
@@ -120,6 +120,12 @@ export class PairRecentCycleDto {
 
   @IsNumberString()
   feeIncreasedRate: string
+
+  @IsNumber()
+  height: number
+
+  @IsDateString()
+  timestamp: Date 
 }
 export class PairRecentDataDto {
   daily: PairRecentCycleDto
@@ -133,4 +139,12 @@ export class PairRecentVolumeAndLiquidityDto {
 
   @IsString()
   liquidity: string
+}
+
+export class PairsSyncedInfo {
+  @IsNumber()
+  height: number
+
+  @IsDateString()
+  timestamp: Date 
 }
