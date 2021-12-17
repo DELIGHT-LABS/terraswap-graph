@@ -1,3 +1,4 @@
+import { IsString, Length, Validate } from 'class-validator'
 import {
   LiquidityDto,
   PairDto,
@@ -6,9 +7,20 @@ import {
   VolumeDto,
 } from 'dashboard/services/dtos/pairs.dtos'
 import { ApiResponseProperty } from '../decorators/api-property.decorator'
-import { TokenResponse } from './dtos'
+import { TokenResponse } from './tokens.dtos'
 
-import { Volume24hResponse } from './dtos'
+import { Volume24hResponse } from './tokens.dtos'
+
+
+export class PairsParam {
+  @IsString()
+  @Validate((pairAddress: string)=>{
+    return pairAddress.startsWith('terra1')
+  })
+  @Length(44,44)
+  pairAddress: string
+}
+
 
 export type PairsResponses = PairsResponse[]
 export class PairsResponse extends PairsDto {

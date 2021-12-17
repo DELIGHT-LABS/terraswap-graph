@@ -5,6 +5,7 @@ import { MyController } from '../decorators/controller.decorator'
 import {
   PairRecentDataResponse,
   PairResponse,
+  PairsParam,
   PairsResponse,
   PairsResponses,
 } from '../dtos/pairs.dtos'
@@ -29,9 +30,9 @@ export class PairsController {
   @Get('/:pairAddress/recent')
   @ApiResponse({ type: PairRecentDataResponse })
   async getRecentDataOfPair(
-    @Param('pairAddress') address: string
+    @Param() dto: PairsParam
   ): Promise<PairRecentDataResponse> {
-    return await this.service.getRecentData(address)
+    return await this.service.getRecentData(dto.pairAddress)
   }
 
   @Get('/:address')

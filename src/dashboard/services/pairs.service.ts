@@ -76,8 +76,8 @@ export class DashboardPairsService {
   async getRecentData(pairAddress: string): Promise<PairRecentDataDto> {
     const syncInfo = await this.repo.getSyncedBlockAndTimestamp(pairAddress)
 
-    if (!syncInfo.height || !syncInfo.timestamp) {
-      throw new NotFoundException(`server is not synced properly`)
+    if (!syncInfo) {
+      throw new NotFoundException()
     }
     const latestTimestamp = floorTimestamp(syncInfo.timestamp.getTime(), Cycle.HOUR)
 

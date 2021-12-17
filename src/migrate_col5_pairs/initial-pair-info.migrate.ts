@@ -5,7 +5,6 @@ import {
   PairDayDataEntity,
   PairHourDataEntity,
   PairInfoEntity,
-  PairWeekDataEntity,
 } from 'orm'
 import { EntityManager, getManager, getRepository } from 'typeorm'
 import { Cycle } from 'types'
@@ -132,9 +131,6 @@ async function savePairData(manager: EntityManager, entities: PairDataEntity[], 
 
   if (cycle === Cycle.DAY) {
     repo = getRepository(PairDayDataEntity)
-  }
-  if (cycle === Cycle.WEEK) {
-    repo = getRepository(PairWeekDataEntity)
   }
 
   await repo.save(parsedTimeEntities)

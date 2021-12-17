@@ -15,7 +15,7 @@ import {
   Recent24hEntity,
   TokenInfoEntity,
 } from 'orm'
-import { getConnection, getManager, getRepository } from 'typeorm'
+import { getConnection, getManager, getRepository, LessThanOrEqual } from 'typeorm'
 import { Cycle } from 'types'
 import { PAIR_DATA_MAX_DAY_RANGE } from './defined'
 import { pairEntity, volumesAndLiquidities } from './dtos/pairs.dtos'
@@ -166,12 +166,11 @@ export class DashboardPairsRepository {
     }
   }
 
-  async getSyncedBlockAndTimestamp(pairAddress: string): Promise<PairsSyncedInfo> {
-    const bRepo = getManager().getRepository(BlockEntity)
-    const phRepo = getManager().getRepository(PairHourDataEntity)
+  async getSyncedBlockAndTimestamp(pairAddress: string): Promise<PairsSyncedInfo | undefined> {
     try {
-      const { height } = await bRepo.findOne({ select: ['height'] })
-      const { timestamp } = await phRepo.findOne({
+      const manager = getManager()
+      const bEntity = await manager.getRepository(BlockEntity).findOne({ select: ['height'] })
+      const pEntity = await manager.getRepository(PairHourDataEntity).findOne({
         select: ['timestamp'],
         where: {
           pair: pairAddress,
@@ -180,10 +179,12 @@ export class DashboardPairsRepository {
           timestamp: 'DESC',
         },
       })
-
-      return { height, timestamp }
+      if (!bEntity?.height || !pEntity?.timestamp) {
+        return
+      }
+      return { height: bEntity.height, timestamp: pEntity.timestamp }
     } catch (err: any) {
-      Logger.warn(`getSyncedBlockAndTimestampOfPair err:${err.stack ? err.stack : err}`)
+      Logger.warn(`getSyncedBlockAndTimestamp err:${err.stack ? err.stack : err}`)
       throw new InternalServerErrorException(`internal server error`)
     }
   }
@@ -206,7 +207,7 @@ export class DashboardPairsRepository {
 
   private async getSumOfVolumes(pairAddress: string, from: Date, to: Date): Promise<string> {
     try {
-      const { volume } = await getRepository(PairHourDataEntity)
+      const entity = await getRepository(PairHourDataEntity)
         .createQueryBuilder('p')
         .select('SUM(p.volumeUst)', 'volume')
         .where('p.timestamp <=:to', { to })
@@ -214,7 +215,7 @@ export class DashboardPairsRepository {
         .andWhere('p.pair =:pairAddress', { pairAddress })
         .getRawOne()
 
-      return volume
+      return entity?.volume || "0"
     } catch (err: any) {
       Logger.warn(`getSumOfVolumes err:${err.stack ? err.stack : err}`)
       throw new InternalServerErrorException(`internal server error`)
@@ -223,18 +224,18 @@ export class DashboardPairsRepository {
 
   private async getTvl(pairAddress: string, targetTime: Date): Promise<string> {
     try {
-      const { liquidity } = await getConnection()
+      const entity = await getConnection()
         .createQueryBuilder()
         .select('p.liquidityUst', 'liquidity')
         .from(PairHourDataEntity, 'p')
         .where('p.pair = :pairAddress', { pairAddress })
-        .andWhere('p.timestamp =:targetTime', { targetTime })
+        .andWhere('p.timestamp <=:targetTime', { targetTime })
         .limit(1)
         .getRawOne()
-
-      return liquidity
+        
+      return entity?.liquidity || '0'
     } catch (err: any) {
-      Logger.warn(`getSumOfLiquidities err:${err.stack ? err.stack : err}`)
+      Logger.warn(`getTvl err:${err.stack ? err.stack : err}`)
       throw new InternalServerErrorException(`internal server error`)
     }
   }

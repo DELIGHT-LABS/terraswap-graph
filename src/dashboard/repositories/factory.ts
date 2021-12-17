@@ -1,5 +1,5 @@
 import { PairQueryUnit } from 'dashboard/services/dtos/dtos'
-import { PairDataEntity, PairDayDataEntity, PairHourDataEntity, PairWeekDataEntity } from 'orm'
+import { PairDataEntity, PairDayDataEntity, PairHourDataEntity } from 'orm'
 import { EntityManager, Repository } from 'typeorm'
 
 export class PairDataRepoFactory {
@@ -9,8 +9,6 @@ export class PairDataRepoFactory {
             return manager.getRepository(PairHourDataEntity)
         case PairQueryUnit.Day:
             return manager.getRepository(PairDayDataEntity)
-        case PairQueryUnit.Week:
-            return manager.getRepository(PairWeekDataEntity)
-    }
+        }
   }
 }

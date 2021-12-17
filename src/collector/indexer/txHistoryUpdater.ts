@@ -7,7 +7,6 @@ import {
   PairInfoEntity,
   TxHistoryEntity,
   Recent24hEntity,
-  PairWeekDataEntity,
 } from 'orm'
 import { Cycle, ExchangeRate, TxHistoryTransformed } from 'types'
 import { isNative, addMinus, stringToDate, isTokenOrderedWell, compareLiquidity } from 'lib/utils'
@@ -125,11 +124,7 @@ export async function updateOrAddTxns(
   pair: string
 ): Promise<PairDataEntity | void> {
   const pairRepo = manager.getRepository(
-    cycle === Cycle.HOUR
-      ? PairHourDataEntity
-      : cycle === Cycle.DAY
-      ? PairDayDataEntity
-      : PairWeekDataEntity
+    cycle === Cycle.HOUR ? PairHourDataEntity : PairDayDataEntity
   )
 
   const lastPairData = await pairRepo.findOne({
@@ -223,11 +218,7 @@ async function updatePairVolume(
   exchangeRate: ExchangeRate | undefined
 ): Promise<PairDataEntity | void> {
   const pairRepo = manager.getRepository(
-    cycle === Cycle.HOUR
-      ? PairHourDataEntity
-      : cycle === Cycle.DAY
-      ? PairDayDataEntity
-      : PairWeekDataEntity
+    cycle === Cycle.HOUR ? PairHourDataEntity : PairDayDataEntity
   )
 
   const pair = transformed.pair
