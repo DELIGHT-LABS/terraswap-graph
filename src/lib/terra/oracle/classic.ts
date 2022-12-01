@@ -53,8 +53,8 @@ export class ClassicOracle implements Oracle {
         got = true
         return res.json()
       } catch (error) {
-        console.log(error)
         delay(1000)
+        throw error
       }
     }
   }

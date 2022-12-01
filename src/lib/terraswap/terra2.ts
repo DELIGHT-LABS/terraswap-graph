@@ -52,12 +52,7 @@ export class PhoenixTerraswap {
             'Content-Type': 'application/json',
             'x-cosmos-block-height': `${height}`
         }
-        try {
-            const res = await this.axios.get(`/cosmwasm/wasm/v1/contract/${contract}/smart/${data}`, { headers })
-            return res.data.data
-        } catch (err) {
-            console.log(err)
-        }
-        return undefined
+        const res = await this.axios.get(`/cosmwasm/wasm/v1/contract/${contract}/smart/${data}`, { headers })
+        return res.data.data
     }
 }

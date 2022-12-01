@@ -16,13 +16,8 @@ export class ClassicLcd implements Lcd {
   })
 
   async getLatestBlockHeight(): Promise<number> {
-    try {
-      const res = await this.classicLcd.get(`/blocks/latest`)
-      return parseInt(res.data.block.header.height)
-    } catch (err) {
-      console.log(err)
-      throw new Error(`cannot get latest block height`)
-    }
+    const res = await this.classicLcd.get(`/blocks/latest`)
+    return parseInt(res.data.block.header.height)
   }
 
   async getTokenInfo(address: string): Promise<TokenInfo> {

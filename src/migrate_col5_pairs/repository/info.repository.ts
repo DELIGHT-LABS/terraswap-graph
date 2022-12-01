@@ -26,7 +26,6 @@ export async function getLatestBlockHeight(): Promise<number> {
     const res = await await lcdClient.get(`/blocks/latest`)
     return parseInt(res.data.block.header.height)
   } catch (err) {
-    console.log(err)
     throw new Error(`cannot get latest block height`)
   }
 }
@@ -45,19 +44,15 @@ export async function getPoolInfo(pairAddress: string, height?: number): Promise
     })
     return res.data
   } catch (err) {
-    console.log(err)
     await delay(100)
   }
 }
 
 export async function getBlockTime(height: number): Promise<string> {
   const path = blockBasePath.replace('height', height + '')
-  try {
-    const res = await lcdClient.get(path)
-    return res?.data?.block.header.time
-  } catch (err) {
-    console.log(err)
-  }
+  const res = await lcdClient.get(path)
+  return res?.data?.block.header.time
+
 }
 
 export async function getBlockHeightByTime(targetTimestamp: number, cycle: Cycle): Promise<number> {
@@ -67,24 +62,20 @@ export async function getBlockHeightByTime(targetTimestamp: number, cycle: Cycle
   let r = parseInt(res?.data?.block.header.height)
   let l = START_BLOCK_HEIGHT
 
-  try {
-    while (l < r) {
-      const m = Math.floor((r + l) / 2)
-      const path = blockBasePath.replace('height', `${m}`)
-      const res = await lcdClient.get(path)
-      const time = res?.data?.block.header.time
+  while (l < r) {
+    const m = Math.floor((r + l) / 2)
+    const path = blockBasePath.replace('height', `${m}`)
+    const res = await lcdClient.get(path)
+    const time = res?.data?.block.header.time
 
-      const blockTime = stringToDate(time, cycle).getTime()
-      if (blockTime === targetTimestamp) {
-        return m
-      } else if (blockTime < targetTimestamp) {
-        l = m + 1
-      } else {
-        r = m - 1
-      }
+    const blockTime = stringToDate(time, cycle).getTime()
+    if (blockTime === targetTimestamp) {
+      return m
+    } else if (blockTime < targetTimestamp) {
+      l = m + 1
+    } else {
+      r = m - 1
     }
-  } catch (err) {
-    console.log(err)
   }
   return l
 }

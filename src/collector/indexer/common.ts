@@ -48,6 +48,7 @@ async function _classicTokenPrice(manager: EntityManager,
   const pairs = await manager.getRepository(PairDayDataEntity).createQueryBuilder()
     .distinctOn(['pair'])
     .where("timestamp <= :timestamp", { timestamp })
+    .andWhere("token_0_reserve != 0 AND token_1_reserve != 0")
     .orderBy("pair", "ASC")
     .addOrderBy("timestamp", "DESC")
     .getMany();
@@ -114,6 +115,7 @@ async function _terra2TokenPrice(manager: EntityManager,
   const pairs = await manager.getRepository(PairDayDataEntity).createQueryBuilder()
     .distinctOn(['pair'])
     .where("timestamp <= :timestamp", { timestamp })
+    .andWhere("token_0_reserve != 0 AND token_1_reserve != 0")
     .orderBy("pair", "ASC")
     .addOrderBy("timestamp", "DESC")
     .getMany();
