@@ -6,6 +6,7 @@ import { CreatePairIndexer } from './createPairIndexer'
 import { TxHistoryIndexer } from './txHistoryIndexer'
 import { NativeTransferIndexer, NonnativeTransferIndexer } from './transferIndexer'
 import { factoryAddress } from 'lib/terraswap/'
+import logRules from '../log-finder/log-rules'
 
 
 const createPairLF = createCreatePairLogFinders(factoryAddress)
@@ -29,7 +30,7 @@ export async function runIndexers(
 
       for (const event of events) {
         // for spam tx
-        if (event.attributes.length < 1800) {
+        if (logRules.isParsable(event.type)) {
           // createPair
           const createPairLogFounds = createPairLF(event)
           createPairLogFounds.length > 0 && await CreatePairIndexer(pairList, tokenList, manager, timestamp, createPairLogFounds)
