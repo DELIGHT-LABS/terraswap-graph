@@ -13,7 +13,7 @@ import { DashboardUserInterfacesModule } from './user-interfaces/dashboard-user-
     DashboardServicesModule,
     DashboardUserInterfacesModule,
     RouterModule.register([
-      { path: `${process.env.API_VERSION ? process.env.API_VERSION : ""}`, module: DashboardUserInterfacesModule }
+      { path: `${process.env.API_VERSION ? process.env.API_VERSION : "v1"}`, module: DashboardUserInterfacesModule }
     ]),
   ],
   controllers: [TerraswapController, PairsController, TxsController],
