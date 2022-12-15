@@ -1,5 +1,6 @@
 {
   "ipcMode": null,
+  "executionRoleArn": "arn:aws:iam::684754810997:role/ecsTaskExecutionRoleWithParameterStore",
   "containerDefinitions": [
     {
       "dnsSearchDomains": null,
@@ -13,7 +14,7 @@
           "awslogs-stream-prefix": "ecs"
         }
       },
-      "entryPoint": [],
+      "entryPoint": null,
       "portMappings": [
         {
           "hostPort": 3000,
@@ -67,6 +68,12 @@
     }
   ],
   "placementConstraints": [],
+  "memory": "1024",
+  "taskRoleArn": "arn:aws:iam::684754810997:role/ecsTaskExecutionRoleWithParameterStore",
+  "compatibilities": [
+    "EC2",
+    "FARGATE"
+  ],
   "family": "phoenix-terraswap-graph-dashboard",
   "requiresAttributes": [
     {
@@ -103,12 +110,6 @@
       "targetId": null,
       "targetType": null,
       "value": null,
-      "name": "ecs.capability.secrets.ssm.environment-variables"
-    },
-    {
-      "targetId": null,
-      "targetType": null,
-      "value": null,
       "name": "ecs.capability.container-ordering"
     },
     {
@@ -116,6 +117,12 @@
       "targetType": null,
       "value": null,
       "name": "ecs.capability.execution-role-ecr-pull"
+    },
+    {
+      "targetId": null,
+      "targetType": null,
+      "value": null,
+      "name": "ecs.capability.secrets.ssm.environment-variables"
     },
     {
       "targetId": null,
@@ -140,7 +147,6 @@
     "cpuArchitecture": null
   },
   "cpu": "256",
-  "revision": 1,
   "status": "ACTIVE",
   "inferenceAccelerators": null,
   "proxyConfiguration": null,
