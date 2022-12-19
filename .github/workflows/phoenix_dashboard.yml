@@ -54,6 +54,7 @@ jobs:
           aws ecs describe-task-definition --task-definition ${{ env.TASK_DEFINITION }} > ${{ env.TASK_DEFINITION }}.json
           ls
           pwd
+          cat ${{ env.TASK_DEFINITION }}.json
 
       # - name: Fill in the new image ID in the Amazon ECS task definition
       #   id: task-def
