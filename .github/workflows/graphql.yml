@@ -1,25 +1,27 @@
-name: Dashboard server
+
+name: graphQL
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - chore/cd
     paths-ignore:
       - "src/collector/**"
+      - "src/dashboard/**"
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: terraswap-graph
   ECS_CLUSTER: terraswap-graph
   # terra mainnet
-  PHOENIX_ECS_SERVICE: phoenix-terraswap-graph-dashboard
-  PHOENIX_TASK_DEFINITION: phoenix-terraswap-graph-dashboard 
-  PHOENIX_CONTAINER_NAME: phoenix-terraswap-graph-dashboard
+  PHOENIX_ECS_SERVICE: phoenix-terraswap-graph-graphql
+  PHOENIX_TASK_DEFINITION: phoenix-terraswap-graph-graphql 
+  PHOENIX_CONTAINER_NAME: phoenix-terraswap-graph-graphql
   # terra classic
-  COLUMBUS_ECS_SERVICE: columbus-terraswap-graph-dashboard
-  COLUMBUS_TASK_DEFINITION: columbus-terraswap-graph-dashboard 
-  COLUMBUS_CONTAINER_NAME: columbus-terraswap-graph-dashboard
+  COLUMBUS_ECS_SERVICE: columbus-terraswap-graph-graphql
+  COLUMBUS_TASK_DEFINITION: columbus-terraswap-graph-graphql 
+  COLUMBUS_CONTAINER_NAME: columbus-terraswap-graph-graphql
 
 jobs:
   build:
@@ -55,8 +57,8 @@ jobs:
           docker image push -a $ECR_REGISTRY/$ECR_REPOSITORY
           echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-  deploy-phoenix-dashboard:
-    name: Deploy Phoenix Dashboard
+  deploy-phoenix-graphql:
+    name: Deploy Phoenix GraphQL
     runs-on: ubuntu-latest
     needs: build
     environment: production
@@ -94,8 +96,8 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-  deploy-columbus-dashboard:
-    name: Deploy Columbus Dashboard
+  deploy-columbus-graphql:
+    name: Deploy Columbus GraphQL
     runs-on: ubuntu-latest
     needs: build
     environment: production
@@ -115,7 +117,7 @@ jobs:
         id: download-task-definition
         working-directory: .
         run: |
-          aws ecs describe-task-definition --task-definition ${{ env.COLUMBUS_TASK_DEFINITION }} | jq '.taskDefinition' > ${{ env.PHOENIX_TASK_DEFINITION }}.json
+          aws ecs describe-task-definition --task-definition ${{ env.COLUMBUS_TASK_DEFINITION }} | jq '.taskDefinition' > ${{ env.COLUMBUS_TASK_DEFINITION }}.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
