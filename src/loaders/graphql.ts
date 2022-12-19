@@ -30,7 +30,7 @@ export async function initGraphQL(app: Koa): Promise<void> {
   server = new ApolloServer({
     schema,
     context: ({ req }) => req,
-    debug: process.env.NODE_ENV !== 'production',
+    debug: process.env.NODE_ENV !== 'prod',
     introspection: true,
     plugins: [
       ApolloServerPluginLandingPageGraphQLPlayground(),

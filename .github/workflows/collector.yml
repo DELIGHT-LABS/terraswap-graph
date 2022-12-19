@@ -1,4 +1,4 @@
-name: Dashboard server
+name: Collector
 
 on:
   workflow_dispatch:
@@ -6,20 +6,20 @@ on:
     branches:
       - chore/cd
     paths-ignore:
-      - "src/collector/**"
+      - "src/dashboard/**"
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: terraswap-graph
   ECS_CLUSTER: terraswap-graph
   # terra mainnet
-  PHOENIX_ECS_SERVICE: phoenix-terraswap-graph-dashboard
-  PHOENIX_TASK_DEFINITION: phoenix-terraswap-graph-dashboard 
-  PHOENIX_CONTAINER_NAME: phoenix-terraswap-graph-dashboard
+  PHOENIX_ECS_SERVICE: phoenix-terraswap-graph-collector
+  PHOENIX_TASK_DEFINITION: phoenix-terraswap-graph-collector 
+  PHOENIX_CONTAINER_NAME: phoenix-terraswap-graph-collector
   # terra classic
-  COLUMBUS_ECS_SERVICE: columbus-terraswap-graph-dashboard
-  COLUMBUS_TASK_DEFINITION: columbus-terraswap-graph-dashboard 
-  COLUMBUS_CONTAINER_NAME: columbus-terraswap-graph-dashboard
+  COLUMBUS_ECS_SERVICE: columbus-terraswap-graph-collector
+  COLUMBUS_TASK_DEFINITION: columbus-terraswap-graph-collector 
+  COLUMBUS_CONTAINER_NAME: columbus-terraswap-graph-collector
 
 jobs:
   build:
@@ -55,8 +55,8 @@ jobs:
           docker image push -a $ECR_REGISTRY/$ECR_REPOSITORY
           echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-  deploy-phoenix-dashboard:
-    name: Deploy Phoenix Dashboard
+  deploy-phoenix-collector:
+    name: Deploy Phoenix Collector
     runs-on: ubuntu-latest
     needs: build
     environment: production
@@ -94,8 +94,8 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-  deploy-columbus-dashboard:
-    name: Deploy Columbus Dashboard
+  deploy-columbus-collector:
+    name: Deploy Columbus Collector
     runs-on: ubuntu-latest
     needs: build
     environment: production

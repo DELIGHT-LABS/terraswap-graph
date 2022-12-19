@@ -49,10 +49,6 @@ export async function initApp(): Promise<Koa> {
         origin: (ctx) => {
           const requestOrigin = ctx.get('Origin')
 
-          // if (process.env.NODE_ENV !== 'production') {
-          //   return requestOrigin
-          // }
-
           return CORS_REGEXP.test(requestOrigin) ? requestOrigin : ''
         },
         credentials: true,
