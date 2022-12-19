@@ -8,7 +8,8 @@ node_modules/
 .eslintcache
 
 # environment variables file
-.env
+!.env.example
+.env*
 *.envrc
 
 # typeorm

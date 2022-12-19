@@ -12,9 +12,11 @@ env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: terraswap-graph
   ECS_CLUSTER: terraswap-graph
+  # terra mainnet
   PHOENIX_ECS_SERVICE: phoenix-terraswap-graph-dashboard
   PHOENIX_TASK_DEFINITION: phoenix-terraswap-graph-dashboard 
   PHOENIX_CONTAINER_NAME: phoenix-terraswap-graph-dashboard
+  # terra classic
   COLUMBUS_ECS_SERVICE: columbus-terraswap-graph-dashboard
   COLUMBUS_TASK_DEFINITION: columbus-terraswap-graph-dashboard 
   COLUMBUS_CONTAINER_NAME: columbus-terraswap-graph-dashboard
@@ -92,37 +94,41 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-  # deploy-columbus:
-  #   name: Deploy Columbus Dashboard
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   environment: production
-  #   steps:
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v1.7.0
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ env.AWS_REGION }}
+  deploy-columbus:
+    name: Deploy Phoenix Dashboard
+    runs-on: ubuntu-latest
+    needs: build
+    environment: production
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-  #     - name: Download Task Definition
-  #       id: download-task-definition
-  #       working-directory: .
-  #       run: |
-  #         aws ecs describe-task-definition --task-definition ${{ env.COLUMBUS_TASK_DEFINITION }} | jq '.taskDefinition' > ${{ env.PHOENIX_TASK_DEFINITION }}.json
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1.5.1
 
-  #     - name: Fill in the new image ID in the Amazon ECS task definition
-  #       id: task-def
-  #       uses: aws-actions/amazon-ecs-render-task-definition@v1.1.1
-  #       with:
-  #         task-definition: ./${{ env.COLUMBUS_TASK_DEFINITION }}.json
-  #         container-name: ${{ env.COLUMBUS_CONTAINER_NAME }}
-  #         image: ${{ needs.build.outputs.image }}
+      - name: Download Task Definition
+        id: download-task-definition
+        working-directory: .
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.COLUMBUS_TASK_DEFINITION }} | jq '.taskDefinition' > ${{ env.PHOENIX_TASK_DEFINITION }}.json
 
-  #     - name: Deploy Amazon ECS task definition
-  #       uses: aws-actions/amazon-ecs-deploy-task-definition@v1.4.10
-  #       with:
-  #         task-definition: ${{ steps.task-def.outputs.task-definition }}
-  #         service: ${{ env.COLUMBUS_ECS_SERVICE }}
-  #         cluster: ${{ env.ECS_CLUSTER }}
-  #         wait-for-service-stability: true
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1.1.1
+        with:
+          task-definition: ./${{ env.COLUMBUS_TASK_DEFINITION }}.json
+          container-name: ${{ env.COLUMBUS_CONTAINER_NAME }}
+          image:  ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY}}:${{ needs.build.outputs.image-tag }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1.4.10
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.COLUMBUS_ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
