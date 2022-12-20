@@ -96,19 +96,16 @@
       ]
       ```
 
-5. Set .envrc
-    
-    about .envrc - https://direnv.net/
-    
-    .envrc (sample)
+5. Set .env
+    .env
       ```
       TZ='UTC'
       
       export TERRA_LCD='https://lcd.terra.dev'
-      export TERRA_CHAIN_ID='columbus-5'
-      export TERRA_MANTLE='https://hive.terra.dev/graphql'
+      export TERRA_RPC='https://rpc.terra.dev'
+      export TERRA_CHAIN_ID='phoenix-1'
 
-      export START_BLOCK_HEIGHT=549000
+      export START_BLOCK_HEIGHT=0
       ```
 
 ## Run Modules
