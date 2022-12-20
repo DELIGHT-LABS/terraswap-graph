@@ -7,14 +7,21 @@ export async function getLastBlock(): Promise<BlockEntity | void> {
 }
 
 export async function getCollectedBlock(): Promise<BlockEntity> {
-  return (await getLastBlock()) || new BlockEntity({ height: config.START_BLOCK_HEIGHT })
+    let block = await getLastBlock()
+    if (!block) {
+      block =  await getRepository(BlockEntity).save({ height: config.START_BLOCK_HEIGHT })
+    }
+    return block
 }
 
 export async function updateBlock(
   block: BlockEntity,
   height: number,
   repo = getRepository(BlockEntity)
-): Promise<BlockEntity> {
+): Promise<void> {
   block.height = height
-  return repo.save(block)
+  const res = await repo.update({height: height - 1}, block)
+  if (res.affected === 0)  {
+    throw new Error(`Block ${height - 1} not found`)
+  }
 }
