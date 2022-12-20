@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - chore/cd
+      - main
     paths-ignore:
       - "src/collector/**"
       - "src/dashboard/**"
