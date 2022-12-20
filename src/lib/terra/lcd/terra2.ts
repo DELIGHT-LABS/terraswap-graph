@@ -20,6 +20,7 @@ export class Terra2Lcd implements Lcd {
             const res = await this.client.get(`${this.lcdUrl}/blocks/latest`)
             return parseInt(res.data.block.header.height)
         } catch (err) {
+            console.log(err)
             throw new Error(`cannot get latest block height`)
         }
     }

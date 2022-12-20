@@ -3,7 +3,7 @@ import { isNative, isTokenOrderedWell } from 'lib/utils'
 import { PairInfoEntity, TokenInfoEntity } from 'orm'
 
 import { EntityManager, getConnection } from 'typeorm'
-import { getAllPairs, getVerifiedTokens, migrationHeight as getMigrationHeight } from './repository/info.repository'
+import { getAllPairs, getVerifiedTokens, getMigrationHeight } from './repository/info.repository'
 
 function setPairs(token: string, pair: string, tokenToPairMap: Map<string, string[]>) {
 

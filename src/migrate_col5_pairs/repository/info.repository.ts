@@ -80,7 +80,7 @@ export async function getBlockHeightByTime(targetTimestamp: number, cycle: Cycle
   return l
 }
 
-export async function migrationHeight(): Promise<number> {
+export async function getMigrationHeight(): Promise<number> {
   let r = await getLatestBlockHeight()
   let l = START_BLOCK_HEIGHT
   const queryStr = `{"pairs": {}}`
