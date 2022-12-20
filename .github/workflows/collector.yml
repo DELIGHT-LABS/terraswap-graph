@@ -4,9 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - chore/cd
+      - main
     paths-ignore:
       - "src/dashboard/**"
+      - "src/graphql/**"
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
